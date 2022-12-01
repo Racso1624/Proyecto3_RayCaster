@@ -28,7 +28,7 @@ player = pygame.image.load('./Sprites/player.png')
 enemies = [
   {
     "x": 150,
-    "y": 220,
+    "y": 150,
     "texture": pygame.image.load('./Sprites/sprite1.png')
   },
 ]
@@ -92,7 +92,24 @@ class Raycaster(object):
 
         return d, self.map[j][i], tx
 
-      self.point(int(x), int(y), WHITE)
+      d += 2
+
+  #Se castea el rayo
+  def mini_cast_ray(self, a):
+
+    d = 0
+
+    while True:
+      x = int(30 + d * cos(a))
+      y = int(self.player["y"] + d * sin(a))
+
+      i = int(x / 20)
+      j = int(y / 20)
+
+      if self.map[j][i] != ' ':
+        return d, self.map[j][i]
+
+      self.point(x, y, (255,255,255))
 
       d += 2
 
@@ -115,6 +132,16 @@ class Raycaster(object):
 
         tx = int((i - x) * 128 / self.blocksize)
         ty = int((j - y) * 128 / self.blocksize)
+
+        c = texture.get_at((tx, ty))
+        self.point(i, j, c)
+
+  def draw_rectangleMini(self, x, y, texture):
+    for i in range(x, x + 20):
+      for j in range(y, y + 20):
+
+        tx = int((i - x) * 128 / 20)
+        ty = int((j - y) * 128 / 20)
 
         c = texture.get_at((tx, ty))
         self.point(i, j, c)
@@ -158,13 +185,13 @@ class Raycaster(object):
 
   #Se renderiza el mapa
   def renderMap(self):
-    for i in range(0, 500, self.blocksize):
-      for j in range(0, 500, self.blocksize):
-        x = int(i / self.blocksize)
-        y = int(j / self.blocksize)
+    for i in range(0, 200, 20):
+      for j in range(0, 200, 20):
+        x = int(i / 20)
+        y = int(j / 20)
 
         if self.map[y][x] != ' ':
-          self.draw_rectangle(i, j, walls[self.map[y][x]])
+          self.draw_rectangleMini(i, j, walls[self.map[y][x]])
 
   #Funcion para dar la bienvenida y elegir el nivel
   #Se devuelve el nivel deseado por el usuario
@@ -343,21 +370,12 @@ class Raycaster(object):
 
   #Se realiza el renderizado de la pantalla
   def render(self):
-    
-    self.renderMap()
-    
-    self.point(self.player["x"], self.player["y"], WHITE)
 
-    for i in range(0, (self.height)):
-      self.point(500, i, BLACK)
-      self.point(501, i, BLACK)
-      self.point(499, i, BLACK)
-
-    for i in range(0, int(self.width / 2)):
+    for i in range(0, int(self.width)):
       try:
-          direction = self.player["direction"] - self.player["fov"] / 2 + self.player["fov"] * i / int(self.width / 2)
+          direction = self.player["direction"] - self.player["fov"] / 2 + self.player["fov"] * i / int(self.width)
           distance, color, texture_x = self.cast_ray(direction)
-          x = int(self.width / 2) + i
+          x = i
           h = self.height / (distance * cos(direction - self.player["direction"])) * 70
           self.draw_stake(x, h, walls[color], texture_x)
       except:
@@ -370,3 +388,9 @@ class Raycaster(object):
       self.draw_sprite(enemy)
 
     self.draw_player(self.width - 256 - 128, self.height - 256)
+
+  def renderMiniMap(self):
+    self.renderMap()
+    for i in range(0, 200):
+      direction = self.player["direction"] - self.player["fov"] / 2+  self.player["fov"] * i / 200
+      self.mini_cast_ray(direction)
