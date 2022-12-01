@@ -6,7 +6,8 @@ pygame.init()
 screen = pygame.display.set_mode((1080, 720), pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN|pygame.HWSURFACE)
 screen.set_alpha(None)
 r = Raycaster(screen)
-r.load_map('./map.txt')
+map = r.startScreen()
+r.load_map(map)
 
 c = 0
 while True:

@@ -139,11 +139,6 @@ class Raycaster(object):
             self.point(x, y, c)
             self.zbuffer[x - 500] = sprite_d
 
-  def musicBackground(self):
-        pygame.mixer.music.load('./Audio/background.mp3')
-        pygame.mixer.music.set_volume(0.8)
-        pygame.mixer.music.play(-1)
-
   def renderText(self, text, font):
     text_s = font.render(text, True, WHITE)
     return text_s, text_s.get_rect()
@@ -156,6 +151,98 @@ class Raycaster(object):
 
         if self.map[y][x] != ' ':
           self.draw_rectangle(i, j, walls[self.map[y][x]])
+
+  def startScreen(self):
+
+    pygame.mixer.music.load('./Audio/background.mp3')
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
+
+    var = True
+    while var:
+      for event in pygame.event.get():
+        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+          exit(0)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                var = False
+
+      self.screen.fill(BLACK)
+
+      font_1 = pygame.font.SysFont('arial', 20)
+      font_2 = pygame.font.SysFont('arial', 40)
+
+      text_s, text_r = self.renderText(
+      "BIENVENIDO AL LABERINTO", font_2)
+      text_r.center = (int(self.width / 2), 150)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "ESTAS LISTO PARA JUGAR?", font_1)
+      text_r.center = (int(self.width / 2), 250)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA ESPACIO PARA CONTINUAR", font_1)
+      text_r.center = (int(self.width / 2), 350)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA ESC PARA SALIR", font_1)
+      text_r.center = (int(self.width / 2), 450)
+      self.screen.blit(text_s, text_r)
+
+      pygame.display.update()
+
+    var = True
+    while var:
+      for event in pygame.event.get():
+        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+          exit(0)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                return './map_1.txt'
+            elif event.key == pygame.K_2:
+              return './map_2.txt'
+            elif event.key == pygame.K_3:
+              return './map_3.txt'
+
+      self.screen.fill(BLACK)
+
+      font_1 = pygame.font.SysFont('arial', 20)
+      font_2 = pygame.font.SysFont('arial', 40)
+
+      text_s, text_r = self.renderText(
+      "ELIGE EL NIVEL QUE DESEES", font_2)
+      text_r.center = (int(self.width / 2), 150)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "OPCIONES:", font_1)
+      text_r.center = (int(self.width / 2), 200)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA 1 PARA ELEGIR NIVEL 1", font_1)
+      text_r.center = (int(self.width / 2), 250)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA 2 PARA ELEGIR NIVEL 2", font_1)
+      text_r.center = (int(self.width / 2), 300)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA 3 PARA ELEGIR NIVEL 3", font_1)
+      text_r.center = (int(self.width / 2), 350)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA ESC PARA SALIR", font_1)
+      text_r.center = (int(self.width / 2), 450)
+      self.screen.blit(text_s, text_r)
+
+      pygame.display.update()
 
   def gameOver(self):
 
@@ -175,9 +262,10 @@ class Raycaster(object):
       self.screen.fill((250, 0, 0))
 
       font = pygame.font.SysFont('arial', 20)
+      font_2 = pygame.font.SysFont('arial', 40)
 
       text_s, text_r = self.renderText(
-      "HAS MUERTO", font)
+      "HAS MUERTO", font_2)
       text_r.center = (int(self.width / 2), 250)
       self.screen.blit(text_s, text_r)
 
@@ -211,9 +299,10 @@ class Raycaster(object):
       self.screen.fill((50,205,50))
 
       font = pygame.font.SysFont('arial', 20)
+      font_2 = pygame.font.SysFont('arial', 40)
 
       text_s, text_r = self.renderText(
-      "FELICIDADES! HAS GANADO EL JUEGO", font)
+      "FELICIDADES! HAS GANADO EL JUEGO", font_2)
       text_r.center = (int(self.width / 2), 250)
       self.screen.blit(text_s, text_r)
 
