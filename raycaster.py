@@ -7,9 +7,9 @@ WHITE = (255, 255, 255)
 BACKGROUND = (0, 255, 255)
 
 
-wall1 = pygame.image.load('./wall1.png')
-wall2 = pygame.image.load('./wall2.png')
-wall3 = pygame.image.load('./wall2.png')
+wall1 = pygame.image.load('./Sprites/wall1.png')
+wall2 = pygame.image.load('./Sprites/wall2.png')
+wall3 = pygame.image.load('./Sprites/wall2.png')
 
 walls = {
   "1": wall1,
@@ -17,13 +17,13 @@ walls = {
   "3": wall3,
 }
 
-player = pygame.image.load('./player.png')
+player = pygame.image.load('./Sprites/player.png')
 
 enemies = [
   {
-    "x": 100,
-    "y": 200,
-    "texture": pygame.image.load('./sprite1.png')
+    "x": 150,
+    "y": 220,
+    "texture": pygame.image.load('./Sprites/sprite1.png')
   },
 ]
 
@@ -50,13 +50,13 @@ class Raycaster(object):
         color = (r, g, b)
         self.point(x, y, color)
 
-  def point(self, x, y, c = None):
-    self.screen.set_at((x, y), c)
-
   def load_map(self, filename):
     with open(filename) as f:
       for line in f.readlines():
         self.map.append(list(line))
+
+  def point(self, x, y, c = None):
+    self.screen.set_at((x, y), c)
 
   def cast_ray(self, a):
 
@@ -139,6 +139,11 @@ class Raycaster(object):
             self.point(x, y, c)
             self.zbuffer[x - 500] = sprite_d
 
+  def music_background(self):
+        pygame.mixer.music.load('./Audio/background.mp3')
+        pygame.mixer.music.set_volume(0.8)
+        pygame.mixer.music.play(-1)
+
   def render(self):
     for i in range(0, 500, 50):
       for j in range(0, 500, 50):
@@ -156,10 +161,10 @@ class Raycaster(object):
       self.point(499, i, (0, 0, 0))
 
     for i in range(0, 500):
-      a =  self.player["a"] - self.player["fov"]/2 + self.player["fov"]*i/500
+      a =  self.player["a"] - self.player["fov"] / 2 + self.player["fov"] * i / 500
       d, c, tx = self.cast_ray(a)
       x = 500 + i
-      h = 500/(d*cos(a-self.player["a"])) * 70
+      h = 500 / (d * cos(a-self.player["a"])) * 70
       self.draw_stake(x, h, walls[c], tx)
       self.zbuffer[i] = d
 
