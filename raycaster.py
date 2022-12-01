@@ -1,88 +1,170 @@
-import numpy
-import random
 import pygame
-from OpenGL.GL import *
-from OpenGL.GL.shaders import *
-
-pygame.init()
-
-screen = pygame.display.set_mode(
-    (1600, 1200),
-    pygame.OPENGL | pygame.DOUBLEBUF
-)
+from math import pi, cos, sin, atan2
 
 
-vertex_shader = """
-#version 460
-layout (location = 0) in vec3 position;
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BACKGROUND = (0, 255, 255)
 
-void main()
-{
-    gl_Position = vec4(position.x, position.y, position.z, 1.0f);
+
+wall1 = pygame.image.load('./wall1.png')
+wall2 = pygame.image.load('./wall2.png')
+wall3 = pygame.image.load('./wall2.png')
+
+walls = {
+  "1": wall1,
+  "2": wall2,
+  "3": wall3,
 }
-"""
 
-fragment_shader = """
-#version 460
+player = pygame.image.load('./player.png')
 
-layout (location = 0) out vec4 fragColor;
+enemies = [
+  {
+    "x": 100,
+    "y": 200,
+    "texture": pygame.image.load('./sprite1.png')
+  },
+]
 
-void main()
-{
-    fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-}
-"""
-compiled_vertex_shader = compileShader(vertex_shader, GL_VERTEX_SHADER)
-compiled_fragment_shader = compileShader(fragment_shader, GL_FRAGMENT_SHADER)
-shader = compileProgram(
-    compiled_vertex_shader,
-    compiled_fragment_shader
-)
-glUseProgram(shader)
+class Raycaster(object):
+  def __init__(self, screen):
+    _, _, self.width, self.height = screen.get_rect()
+    self.screen = screen
+    self.blocksize = 50
+    self.player = {
+      "x": self.blocksize + 20,
+      "y": self.blocksize + 20,
+      "a": pi/3,
+      "fov": pi/3
+    }
+    self.map = []
+    self.zbuffer = [-float('inf') for z in range(0, 500)]
 
+  def clear(self):
+    for x in range(self.width):
+      for y in range(self.height):
+        r = int((x / self.width) * 255) if x / self.width < 1 else 1
+        g = int((y / self.height) * 255) if y / self.height < 1 else 1
+        b = 0
+        color = (r, g, b)
+        self.point(x, y, color)
 
-vertex_data = numpy.array([
-    -0.5, -0.5, 0.0,
-     0.5, -0.5, 0.0,
-     0.0,  0.5, 0.0,
-], dtype=numpy.float32)
+  def point(self, x, y, c = None):
+    self.screen.set_at((x, y), c)
 
-vertex_buffer_object = glGenBuffers(1)
-glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object)
-glBufferData(
-    GL_ARRAY_BUFFER,  # tipo de datos
-    vertex_data.nbytes,  # tamaño de da data en bytes    
-    vertex_data, # puntero a la data
-    GL_STATIC_DRAW
-)
-vertex_array_object = glGenVertexArrays(1)
-glBindVertexArray(vertex_array_object)
+  def load_map(self, filename):
+    with open(filename) as f:
+      for line in f.readlines():
+        self.map.append(list(line))
 
-glVertexAttribPointer(
-    0,
-    3,
-    GL_FLOAT,
-    GL_FALSE,
-    3 * 4,
-    ctypes.c_void_p(0)
-)
-glEnableVertexAttribArray(0)
+  def cast_ray(self, a):
 
+    d = 0
 
+    while True:
+      x = self.player["x"] + d * cos(a)
+      y = self.player["y"] + d * sin(a)
 
+      i = int(x / self.blocksize)
+      j = int(y / self.blocksize)
 
+      if self.map[j][i] != ' ':
+        hitx = x - i * self.blocksize
+        hity = y - j * self.blocksize
 
-running = True
+        if 1 < hitx < 49:
+          maxhit = hitx
+        else:
+          maxhit = hity
 
-glClearColor(0.5, 1.0, 0.5, 1.0)
+        tx = int(maxhit * 128 / self.blocksize)
 
-while running:
-    glClear(GL_COLOR_BUFFER_BIT)
+        return d, self.map[j][i], tx
 
-    glDrawArrays(GL_TRIANGLES, 0, 3)
+      self.point(int(x), int(y), (255, 255, 255))
 
-    pygame.display.flip()
+      d += 2
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+  def draw_player(self, xi, yi, w = 256, h = 256):
+    for i in range(xi, xi + w):
+      for j in range(yi, yi + h):
+
+        tx = int((i - xi) * 32 / w)
+        ty = int((j - yi) * 32 / h)
+        c = player.get_at((tx, ty))
+
+        if c != (152, 0, 136, 255):
+          self.point(i, j, c)
+
+  def draw_rectangle(self, x, y, texture):
+    for i in range(x, x + self.blocksize):
+      for j in range(y, y + self.blocksize):
+
+        tx = int((i - x) * 128 / self.blocksize)
+        ty = int((j - y) * 128 / self.blocksize)
+
+        c = texture.get_at((tx, ty))
+        self.point(i, j, c)
+
+  def draw_stake(self, x, h, texture, tx):
+    start = int(250 - h / 2)
+    end = int(250 + h / 2)
+
+    for y in range(start, end): 
+      ty = int(((y - start) * 128) / (end - start))
+      c = texture.get_at((tx, ty))
+      self.point(x, y, c)
+
+  def draw_sprite(self, sprite):
+    sprite_a = atan2(sprite["y"] - self.player["y"], sprite["x"] - self.player["x"])
+
+    sprite_d = ((self.player["x"] - sprite["x"]) ** 2 + (self.player["y"] - sprite["y"]) ** 2) ** (1/2)
+    sprite_size = (500 / sprite_d) * 70
+
+    sprite_x = 500 + (sprite_a - self.player["a"])*500/self.player["fov"] + 250 - sprite_size/2
+    sprite_y = 250 - sprite_size / 2
+
+    sprite_x = int(sprite_x)
+    sprite_y = int(sprite_y)
+    sprite_size = int(sprite_size)
+
+    for x in range(sprite_x, sprite_x + sprite_size):
+      for y in range(sprite_y, sprite_y + sprite_size):
+        if 500 < x < 1000 and self.zbuffer[x - 500] >= sprite_d:
+          tx = int((x - sprite_x) * 128 / sprite_size)
+          ty = int((y - sprite_y) * 128 / sprite_size)
+          c = sprite["texture"].get_at((tx, ty))
+          if c != (152, 0, 136, 255):
+            self.point(x, y, c)
+            self.zbuffer[x - 500] = sprite_d
+
+  def render(self):
+    for i in range(0, 500, 50):
+      for j in range(0, 500, 50):
+        x = int(i / self.blocksize)
+        y = int(j / self.blocksize)
+
+        if self.map[y][x] != ' ':
+          self.draw_rectangle(i, j, walls[self.map[y][x]])
+
+    self.point(self.player["x"], self.player["y"], (255, 255, 255))
+
+    for i in range(0, 500):
+      self.point(500, i, (0, 0, 0))
+      self.point(501, i, (0, 0, 0))
+      self.point(499, i, (0, 0, 0))
+
+    for i in range(0, 500):
+      a =  self.player["a"] - self.player["fov"]/2 + self.player["fov"]*i/500
+      d, c, tx = self.cast_ray(a)
+      x = 500 + i
+      h = 500/(d*cos(a-self.player["a"])) * 70
+      self.draw_stake(x, h, walls[c], tx)
+      self.zbuffer[i] = d
+
+    for enemy in enemies:
+      self.point(enemy["x"], enemy["y"], (0, 0, 0))
+      self.draw_sprite(enemy)
+
+    self.draw_player(1000 - 256 - 128, 500 - 256)
