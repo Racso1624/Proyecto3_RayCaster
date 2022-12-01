@@ -39,7 +39,7 @@ class Raycaster(object):
       "fov": pi/3
     }
     self.map = []
-    self.zbuffer = [-float('inf') for z in range(0, 500)]
+    self.zbuffer = [999_999 for _ in range(0, int(self.width / 2))]
 
   def clear(self):
     for x in range(self.width):
@@ -108,8 +108,8 @@ class Raycaster(object):
         self.point(i, j, c)
 
   def draw_stake(self, x, h, texture, texture_x):
-    start = int(250 - h / 2)
-    end = int(250 + h / 2)
+    start = int((self.height / 2) - h / 2)
+    end = int((self.height / 2) + h / 2)
 
     for y in range(start, end): 
       texture_y = int(((y - start) * 128) / (end - start))
@@ -122,8 +122,8 @@ class Raycaster(object):
     sprite_d = ((self.player["x"] - sprite["x"]) ** 2 + (self.player["y"] - sprite["y"]) ** 2) ** (1/2)
     sprite_size = (500 / sprite_d) * 70
 
-    sprite_x = 500 + (sprite_a - self.player["direction"])*500/self.player["fov"] + 250 - sprite_size/2
-    sprite_y = 250 - sprite_size / 2
+    sprite_x = int(self.width / 2) + (sprite_a - self.player["direction"]) * self.height / self.player["fov"] + 250 - sprite_size / 2
+    sprite_y = int(self.height / 2) - sprite_size / 2
 
     sprite_x = int(sprite_x)
     sprite_y = int(sprite_y)
@@ -159,21 +159,24 @@ class Raycaster(object):
     
     self.point(self.player["x"], self.player["y"], WHITE)
 
-    for i in range(0, 500):
+    for i in range(0, (self.height)):
       self.point(500, i, BLACK)
       self.point(501, i, BLACK)
       self.point(499, i, BLACK)
 
-    for i in range(0, 500):
-      direction = self.player["direction"] - self.player["fov"] / 2 + self.player["fov"] * i / 500
-      distance, color, texture_x = self.cast_ray(direction)
-      x = 500 + i
-      h = 500 / (distance * cos(direction - self.player["direction"])) * 70
-      self.draw_stake(x, h, walls[color], texture_x)
-      self.zbuffer[i] = distance
+    for i in range(0, int(self.width / 2)):
+      try:
+          direction = self.player["direction"] - self.player["fov"] / 2 + self.player["fov"] * i / int(self.width / 2)
+          distance, color, texture_x = self.cast_ray(direction)
+          x = int(self.width / 2) + i
+          h = self.height / (distance * cos(direction - self.player["direction"])) * 70
+          self.draw_stake(x, h, walls[color], texture_x)
+      except:
+          self.player["x"] = 70
+          self.player["y"] = 70
 
     for enemy in enemies:
       self.point(enemy["x"], enemy["y"], BLACK)
       self.draw_sprite(enemy)
 
-    self.draw_player(1000 - 256 - 128, 500 - 256)
+    self.draw_player(self.width - 256 - 128, self.height - 256)

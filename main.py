@@ -18,14 +18,14 @@ while True:
             exit(0)
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_a:
-                r.player["a"] -= pi/10
+                r.player["direction"] -= pi/10
             elif e.key == pygame.K_d:
-                r.player["a"] += pi/10
+                r.player["direction"] += pi/10
 
             elif e.key == pygame.K_RIGHT:
-                r.player["x"] += 10
-            elif e.key == pygame.K_LEFT:
                 r.player["x"] -= 10
+            elif e.key == pygame.K_LEFT:
+                r.player["x"] += 10
             elif e.key == pygame.K_UP:
                 r.player["y"] += 10
             elif e.key == pygame.K_DOWN:
@@ -33,8 +33,8 @@ while True:
 
             if e.key == pygame.K_f:
                 if screen.get_flags() and pygame.FULLSCREEN:
-                    pygame.display.set_mode((1000, 500))
+                    pygame.display.set_mode((1080, 720))
                 else:
-                    pygame.display.set_mode((1000, 500),  pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN)
+                    pygame.display.set_mode((1080, 720),  pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN)
 
     pygame.display.flip()
