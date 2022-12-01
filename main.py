@@ -10,7 +10,7 @@ r.load_map('./map.txt')
 
 c = 0
 while True:
-    screen.fill((113, 113, 113))
+    screen.fill((230,230,250))
     r.render()
 
     for e in pygame.event.get():

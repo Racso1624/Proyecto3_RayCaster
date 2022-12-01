@@ -139,12 +139,16 @@ class Raycaster(object):
             self.point(x, y, c)
             self.zbuffer[x - 500] = sprite_d
 
-  def music_background(self):
+  def musicBackground(self):
         pygame.mixer.music.load('./Audio/background.mp3')
         pygame.mixer.music.set_volume(0.8)
         pygame.mixer.music.play(-1)
 
-  def render_map(self):
+  def renderText(self, text, font):
+    text_s = font.render(text, True, WHITE)
+    return text_s, text_s.get_rect()
+
+  def renderMap(self):
     for i in range(0, 500, 50):
       for j in range(0, 500, 50):
         x = int(i / self.blocksize)
@@ -153,9 +157,82 @@ class Raycaster(object):
         if self.map[y][x] != ' ':
           self.draw_rectangle(i, j, walls[self.map[y][x]])
 
+  def gameOver(self):
+
+    game_over_sound = pygame.mixer.Sound('./Audio/game_over.mp3')
+    pygame.mixer.music.stop()
+    pygame.mixer.Sound.play(game_over_sound)
+
+    var = True
+    while var:
+      for event in pygame.event.get():
+        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+          exit(0)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                var = False
+
+      self.screen.fill((250, 0, 0))
+
+      font = pygame.font.SysFont('arial', 20)
+
+      text_s, text_r = self.renderText(
+      "HAS MUERTO", font)
+      text_r.center = (int(self.width / 2), 250)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA ESPACIO PARA JUGAR DE NUEVO", font)
+      text_r.center = (int(self.width / 2), 350)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA ESC PARA SALIR", font)
+      text_r.center = (int(self.width / 2), 450)
+      self.screen.blit(text_s, text_r)
+
+      pygame.display.update()
+
+  def gameWin(self):
+
+    win_sound = pygame.mixer.Sound('./Audio/win.mp3')
+    pygame.mixer.music.stop()
+    pygame.mixer.Sound.play(win_sound)
+
+    var = True
+    while var:
+      for event in pygame.event.get():
+        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+          exit(0)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                var = False
+
+      self.screen.fill((50,205,50))
+
+      font = pygame.font.SysFont('arial', 20)
+
+      text_s, text_r = self.renderText(
+      "FELICIDADES! HAS GANADO EL JUEGO", font)
+      text_r.center = (int(self.width / 2), 250)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA ESPACIO PARA JUGAR DE NUEVO", font)
+      text_r.center = (int(self.width / 2), 350)
+      self.screen.blit(text_s, text_r)
+
+      text_s, text_r = self.renderText(
+      "PRESIONA ESC PARA SALIR", font)
+      text_r.center = (int(self.width / 2), 450)
+      self.screen.blit(text_s, text_r)
+
+      pygame.display.update()
+
+
   def render(self):
     
-    self.render_map()
+    self.renderMap()
     
     self.point(self.player["x"], self.player["y"], WHITE)
 
@@ -174,6 +251,7 @@ class Raycaster(object):
       except:
           self.player["x"] = 70
           self.player["y"] = 70
+          self.gameOver()
 
     for enemy in enemies:
       self.point(enemy["x"], enemy["y"], BLACK)
