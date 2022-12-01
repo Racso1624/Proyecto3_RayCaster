@@ -35,7 +35,7 @@ class Raycaster(object):
     self.player = {
       "x": self.blocksize + 20,
       "y": self.blocksize + 20,
-      "a": pi/3,
+      "direction": pi/3,
       "fov": pi/3
     }
     self.map = []
@@ -82,7 +82,7 @@ class Raycaster(object):
 
         return d, self.map[j][i], tx
 
-      self.point(int(x), int(y), (255, 255, 255))
+      self.point(int(x), int(y), WHITE)
 
       d += 2
 
@@ -90,9 +90,9 @@ class Raycaster(object):
     for i in range(xi, xi + w):
       for j in range(yi, yi + h):
 
-        tx = int((i - xi) * 32 / w)
-        ty = int((j - yi) * 32 / h)
-        c = player.get_at((tx, ty))
+        texture_x = int((i - xi) * 32 / w)
+        texture_y = int((j - yi) * 32 / h)
+        c = player.get_at((texture_x, texture_y))
 
         if c != (152, 0, 136, 255):
           self.point(i, j, c)
@@ -107,14 +107,14 @@ class Raycaster(object):
         c = texture.get_at((tx, ty))
         self.point(i, j, c)
 
-  def draw_stake(self, x, h, texture, tx):
+  def draw_stake(self, x, h, texture, texture_x):
     start = int(250 - h / 2)
     end = int(250 + h / 2)
 
     for y in range(start, end): 
-      ty = int(((y - start) * 128) / (end - start))
-      c = texture.get_at((tx, ty))
-      self.point(x, y, c)
+      texture_y = int(((y - start) * 128) / (end - start))
+      color = texture.get_at((texture_x, texture_y))
+      self.point(x, y, color)
 
   def draw_sprite(self, sprite):
     sprite_a = atan2(sprite["y"] - self.player["y"], sprite["x"] - self.player["x"])
@@ -122,7 +122,7 @@ class Raycaster(object):
     sprite_d = ((self.player["x"] - sprite["x"]) ** 2 + (self.player["y"] - sprite["y"]) ** 2) ** (1/2)
     sprite_size = (500 / sprite_d) * 70
 
-    sprite_x = 500 + (sprite_a - self.player["a"])*500/self.player["fov"] + 250 - sprite_size/2
+    sprite_x = 500 + (sprite_a - self.player["direction"])*500/self.player["fov"] + 250 - sprite_size/2
     sprite_y = 250 - sprite_size / 2
 
     sprite_x = int(sprite_x)
@@ -132,9 +132,9 @@ class Raycaster(object):
     for x in range(sprite_x, sprite_x + sprite_size):
       for y in range(sprite_y, sprite_y + sprite_size):
         if 500 < x < 1000 and self.zbuffer[x - 500] >= sprite_d:
-          tx = int((x - sprite_x) * 128 / sprite_size)
-          ty = int((y - sprite_y) * 128 / sprite_size)
-          c = sprite["texture"].get_at((tx, ty))
+          texture_x = int((x - sprite_x) * 128 / sprite_size)
+          texture_y = int((y - sprite_y) * 128 / sprite_size)
+          c = sprite["texture"].get_at((texture_x, texture_y))
           if c != (152, 0, 136, 255):
             self.point(x, y, c)
             self.zbuffer[x - 500] = sprite_d
@@ -144,7 +144,7 @@ class Raycaster(object):
         pygame.mixer.music.set_volume(0.8)
         pygame.mixer.music.play(-1)
 
-  def render(self):
+  def render_map(self):
     for i in range(0, 500, 50):
       for j in range(0, 500, 50):
         x = int(i / self.blocksize)
@@ -153,23 +153,27 @@ class Raycaster(object):
         if self.map[y][x] != ' ':
           self.draw_rectangle(i, j, walls[self.map[y][x]])
 
-    self.point(self.player["x"], self.player["y"], (255, 255, 255))
+  def render(self):
+    
+    self.render_map()
+    
+    self.point(self.player["x"], self.player["y"], WHITE)
 
     for i in range(0, 500):
-      self.point(500, i, (0, 0, 0))
-      self.point(501, i, (0, 0, 0))
-      self.point(499, i, (0, 0, 0))
+      self.point(500, i, BLACK)
+      self.point(501, i, BLACK)
+      self.point(499, i, BLACK)
 
     for i in range(0, 500):
-      a =  self.player["a"] - self.player["fov"] / 2 + self.player["fov"] * i / 500
-      d, c, tx = self.cast_ray(a)
+      direction = self.player["direction"] - self.player["fov"] / 2 + self.player["fov"] * i / 500
+      distance, color, texture_x = self.cast_ray(direction)
       x = 500 + i
-      h = 500 / (d * cos(a-self.player["a"])) * 70
-      self.draw_stake(x, h, walls[c], tx)
-      self.zbuffer[i] = d
+      h = 500 / (distance * cos(direction - self.player["direction"])) * 70
+      self.draw_stake(x, h, walls[color], texture_x)
+      self.zbuffer[i] = distance
 
     for enemy in enemies:
-      self.point(enemy["x"], enemy["y"], (0, 0, 0))
+      self.point(enemy["x"], enemy["y"], BLACK)
       self.draw_sprite(enemy)
 
     self.draw_player(1000 - 256 - 128, 500 - 256)
