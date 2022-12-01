@@ -1,12 +1,17 @@
+#Oscar Fernando López Barrios
+#Carné 20679
+#Gráficas Por Computadora
+#Proyecto 3
+
 import pygame
 from math import pi, cos, sin, atan2
 
-
+#Colores
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BACKGROUND = (0, 255, 255)
 
-
+#Se agregan paredes
 wall1 = pygame.image.load('./Sprites/wall1.png')
 wall2 = pygame.image.load('./Sprites/wall2.png')
 wall3 = pygame.image.load('./Sprites/wall2.png')
@@ -17,6 +22,7 @@ walls = {
   "3": wall3,
 }
 
+#Se agrega jugador
 player = pygame.image.load('./Sprites/player.png')
 
 enemies = [
@@ -27,6 +33,7 @@ enemies = [
   },
 ]
 
+#Se realiza la clase
 class Raycaster(object):
   def __init__(self, screen):
     _, _, self.width, self.height = screen.get_rect()
@@ -41,6 +48,7 @@ class Raycaster(object):
     self.map = []
     self.zbuffer = [999_999 for _ in range(0, int(self.width / 2))]
 
+  #Se realizan los metodos de clear
   def clear(self):
     for x in range(self.width):
       for y in range(self.height):
@@ -50,6 +58,7 @@ class Raycaster(object):
         color = (r, g, b)
         self.point(x, y, color)
 
+  #Se carga el mapa
   def load_map(self, filename):
     with open(filename) as f:
       for line in f.readlines():
@@ -58,6 +67,7 @@ class Raycaster(object):
   def point(self, x, y, c = None):
     self.screen.set_at((x, y), c)
 
+  #Se castea el rayo
   def cast_ray(self, a):
 
     d = 0
@@ -86,6 +96,7 @@ class Raycaster(object):
 
       d += 2
 
+  #Se dibuja al player
   def draw_player(self, xi, yi, w = 256, h = 256):
     for i in range(xi, xi + w):
       for j in range(yi, yi + h):
@@ -97,6 +108,7 @@ class Raycaster(object):
         if c != (152, 0, 136, 255):
           self.point(i, j, c)
 
+  #Se renderiza los objetos de la escena
   def draw_rectangle(self, x, y, texture):
     for i in range(x, x + self.blocksize):
       for j in range(y, y + self.blocksize):
@@ -139,24 +151,28 @@ class Raycaster(object):
             self.point(x, y, c)
             self.zbuffer[x - 500] = sprite_d
 
+  #Se utiliza para renderizar el texto
   def renderText(self, text, font):
     text_s = font.render(text, True, WHITE)
     return text_s, text_s.get_rect()
 
+  #Se renderiza el mapa
   def renderMap(self):
-    for i in range(0, 500, 50):
-      for j in range(0, 500, 50):
+    for i in range(0, 500, self.blocksize):
+      for j in range(0, 500, self.blocksize):
         x = int(i / self.blocksize)
         y = int(j / self.blocksize)
 
         if self.map[y][x] != ' ':
           self.draw_rectangle(i, j, walls[self.map[y][x]])
 
+  #Funcion para dar la bienvenida y elegir el nivel
+  #Se devuelve el nivel deseado por el usuario
   def startScreen(self):
 
     pygame.mixer.music.load('./Audio/background.mp3')
-    pygame.mixer.music.set_volume(0.5)
-    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.8)
+    pygame.mixer.music.play()
 
     var = True
     while var:
@@ -244,6 +260,7 @@ class Raycaster(object):
 
       pygame.display.update()
 
+  #Funcion para el fin del juego
   def gameOver(self):
 
     game_over_sound = pygame.mixer.Sound('./Audio/game_over.mp3')
@@ -281,6 +298,7 @@ class Raycaster(object):
 
       pygame.display.update()
 
+  #Funcion para cuando el usuario gana
   def gameWin(self):
 
     win_sound = pygame.mixer.Sound('./Audio/win.mp3')
@@ -295,6 +313,8 @@ class Raycaster(object):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 var = False
+                self.player["x"] = 70
+                self.player["y"] = 70
 
       self.screen.fill((50,205,50))
 
@@ -318,7 +338,10 @@ class Raycaster(object):
 
       pygame.display.update()
 
+  def playerWin(self):
+    return ((350 < self.__player["x"] < 450) and (450 < self.__player["y"] < 500))
 
+  #Se realiza el renderizado de la pantalla
   def render(self):
     
     self.renderMap()

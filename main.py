@@ -1,19 +1,31 @@
+#Oscar Fernando López Barrios
+#Carné 20679
+#Gráficas Por Computadora
+#Proyecto 3
+
 import pygame
 from math import pi
 from raycaster import *
 
+#Se inicia la pantalla
 pygame.init()
 screen = pygame.display.set_mode((1080, 720), pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN|pygame.HWSURFACE)
 screen.set_alpha(None)
+
+#Se crea el raycaster
 r = Raycaster(screen)
+
+#Elige el mapa y se carga
 map = r.startScreen()
 r.load_map(map)
 
-c = 0
+var = True
 while True:
+    #Se llena la pantalla
     screen.fill((230,230,250))
     r.render()
 
+    #Se muestran los FPS
     font_fps = pygame.font.SysFont('arial', 16)
     fps = "FPS: " + str(round(pygame.time.Clock().get_fps(), 3))
     fps_text = font_fps.render(fps, True, (255, 255, 255), (0, 0, 0))
@@ -21,7 +33,9 @@ while True:
     fps_rect.center = (950, 25)
     screen.blit(fps_text, fps_rect)
     pygame.time.Clock().tick()
+    pygame.display.flip()
 
+    #Se toma en cuenta las teclas
     for e in pygame.event.get():
         if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
             exit(0)
@@ -46,4 +60,7 @@ while True:
                 else:
                     pygame.display.set_mode((1080, 720),  pygame.DOUBLEBUF|pygame.HWACCEL|pygame.FULLSCREEN)
 
-    pygame.display.flip()
+    #Se verifica si el jugador gana
+    if r.playerWin:
+        r.gameWin
+        var = False
