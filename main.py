@@ -14,6 +14,14 @@ while True:
     screen.fill((230,230,250))
     r.render()
 
+    font_fps = pygame.font.SysFont('arial', 16)
+    fps = "FPS: " + str(round(pygame.time.Clock().get_fps(), 3))
+    fps_text = font_fps.render(fps, True, (255, 255, 255), (0, 0, 0))
+    fps_rect = fps_text.get_rect()
+    fps_rect.center = (950, 25)
+    screen.blit(fps_text, fps_rect)
+    pygame.time.Clock().tick()
+
     for e in pygame.event.get():
         if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
             exit(0)
